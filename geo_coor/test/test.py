@@ -15,6 +15,7 @@ if 'env path':
     )
     from geo_coor.core import GeoCoordinate, OutputFormat
     from geo_coor.cli import main as cli_main
+    from geo_coor.api.utils import after_end
 
     sys.path.remove(sys.path[0])
 
@@ -44,7 +45,7 @@ class CoreTests(TestCase):
         ]:
             print(gc.twd97_2_wgs84(tx, ty))
 
-        with open(Path("./WGS84_TWD97.csv"), 'r', encoding='utf-8', newline='') as csv_file, \
+        with open(Path("./asset/csv/WGS84_TWD97.csv"), 'r', encoding='utf-8', newline='') as csv_file, \
             open(Path('./temp.output.csv'), 'w', encoding='utf-8',
                  newline='') as wf:  # newline = '' Avoid unnecessary blank lines
 
@@ -58,21 +59,34 @@ class CoreTests(TestCase):
                 x, y = gc.twd97_2_wgs84(float(tx), float(ty))
                 csv_writer.writerow([tx, ty, x, y])
 
-    def test_csv_converter(self):
-        cvt = GeoCoordinate.CSVConverter(
-            Path(r'E:\E_Carson\GitServer\work_dir\pypi\projects\Tool\geo-coor\geo_coor\test\WGS84_TWD97.csv'))
-        # with cvt.enter(1, 0, 2, 3, OutputFormat.WGS84) as df:  # specific column with int
-        # with cvt.enter('E', 'N', 2, 3, Path('./Output.temp.csv'), OutputFormat.WGS84) as df:
 
-        """
-        with cvt.enter('E', 'N', 2, 3, OutputFormat.WGS84, Path('./Output.temp.csv'),
-                       columns=['E', '__x__', 'N', '__y__']) as df:  # If you use int as the name of the new column, .then x will be __x__, and y will be __y__
+class CSVConverterTests(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cvt = GeoCoordinate.CSVConverter(Path(r'./asset/csv/WGS84_TWD97.csv'))
+
+    def test_csv(self):
+        # with self.cvt.enter(1, 0, 2, 3, OutputFormat.WGS84) as df:  # specific column with int
+        # with self.cvt.enter('E', 'N', 2, 3, Path('./Output.temp.csv'), OutputFormat.WGS84) as df:
+
+        with self.cvt.enter(
+            'E', 'N', 2, 3, OutputFormat.WGS84, Path('./Output.temp.csv'),
+
+            # If you use int as the name of the new column, .then x will be __x__, and y will be __y__
+            columns=['E', '__x__', 'N', '__y__']
+        ) as df:
             ...
-        """
 
-        with cvt.enter('E', 'N', 'x', 'y', OutputFormat.WGS84,
-                       Path('./Output.temp.xlsx'), columns=['E', 'x', 'N', 'y']  # <-- options
-                       ) as df:
+    def test_xlsx_output_file(self):
+        with self.cvt.enter('E', 'N', 'x', 'y', OutputFormat.WGS84,
+                            Path('./Output.temp.csv'), columns=['E', 'x', 'N', 'y']  # <-- options
+                            ) as df:
+            ...
+
+    def test_xlsx_no_output(self):
+        with self.cvt.enter('E', 'N', 'x', 'y', OutputFormat.WGS84,
+                            columns=['E', 'x', 'N', 'y']  # <-- options
+                            ) as df:
             ...
 
 
@@ -80,6 +94,19 @@ class CLITests(unittest.TestCase):
 
     def test_show_version(self):
         self.assertTrue(len(__version__) > 0)
+
+    def test_feed_setting_file(self):
+        setting_file_path = Path(__file__).parent / Path('setting.py')
+        with after_end(cb_fun=lambda: os.remove(setting_file_path)) as _:
+            with open(Path(__file__).parent.parent / Path('config.py'), 'r', encoding='utf-8') as config, \
+                   open(setting_file_path, 'w', encoding='utf-8') as setting:
+                data = config.read().replace('use default config', 'use test setting.py')
+                # data = data.replace("SOURCE_CSV = Path('')", "SOURCE_CSV = Path('./asset/csv/WGS84_TWD97.csv')")
+                setting.write(data)
+                # setting.write("OUTPUT_FILE = Path('./temp.output.xlsx')\n")  # xlsx
+                # setting.write("OUTPUT_FILE = Path('./temp.output.csv')\n")  # csv
+                setting.write("COLUMNS = [COL_X, NEW_COL_X, COL_Y, NEW_COL_Y]\n")
+            cli_main(setting_file_path)
 
 
 def test_setup():
@@ -130,7 +157,8 @@ def run_all_tests_case(module: ModuleType):
 
 
 def main():
-    CoreTests().test_csv_converter()
+    # CSVConverterTests().test_xlsx_no_output()
+    CLITests().test_feed_setting_file()
 
 
 if __name__ == '__main__':

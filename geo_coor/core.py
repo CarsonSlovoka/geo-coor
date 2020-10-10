@@ -52,9 +52,11 @@ class GeoCoordinate:
                 df = df.reindex(columns=columns)  # change the position of column.
                 yield df
             finally:
-                if len(df) == 0 or output_path is None:
+                if len(df) == 0:
                     return
-
+                if output_path is None:
+                    print(df)
+                    return
                 if output_path.suffix.upper() == '.CSV':
                     df.to_csv(output_path, index=False)
                     return

@@ -46,8 +46,9 @@ with open('README.rst', encoding='utf-8') as f:
         if line.strip().startswith('===='):
             break
     f.seek(0)
-    LONG_DESCRIPTION = ''.join([line if line.strip() != '.. uml::' else line.replace('..', '...')  # PyPI does not support uml
-                                for idx, line in enumerate(f) if idx >= begin_idx])
+    LONG_DESCRIPTION = ''.join(
+        [line if line.strip() != '.. uml::' else line.replace('..', '...')  # PyPI does not support uml
+         for idx, line in enumerate(f) if idx >= begin_idx])
 
 with open('requirements.txt') as req_txt:
     LIST_REQUIRES = [line.strip() for line in req_txt if not line.startswith('#') and line.strip() != '']
@@ -57,7 +58,7 @@ setup(
     version=VERSION_NUMBER,  # x.x.x.{dev, a, b, rc}
 
     packages=find_packages(exclude=['*.test_cases']),
-    package_data={},
+    package_data={f'{PACKAGES_DIR}.test': ['asset/csv/*.csv', ], },
     include_package_data=True,
     license="BSD 3-Clause",
 
@@ -108,7 +109,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            f'geo_coor={PACKAGES_DIR}.test.test:main',
+            f'geo_coor={PACKAGES_DIR}.cli:main',
         ],
     },
     test_suite='setup.test_setup',  # `python setup.py test` will call this function. # return value must is `suite`
