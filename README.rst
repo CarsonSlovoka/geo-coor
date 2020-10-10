@@ -73,7 +73,7 @@ USAGE
 :cmd: ``geo_coor "PATH OF YOUR SETTING.PY"``
 
     .. note::
-        About the setting file you can reference in `here <https://github.com/CarsonSlovoka/geo_coor/tree/master/geo_coor/config.py>`_.
+        About the setting file you can reference in `here <https://github.com/CarsonSlovoka/geo-coor/blob/master/geo_coor/config.py>`_.
 
 :get help: ``geo_coor -h``
 
